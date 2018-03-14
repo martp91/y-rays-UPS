@@ -11,6 +11,8 @@ def open_dat(fname):
     d = {}
     for line in open_file:
         entry = line.split(':')
-        if entry[0] in comps:
+        if entry[0]=='ExtSrc':
+            d[entry[0]+entry[1]]= np.array(ast.literal_eval(entry[2].strip()))
+        else:
             d[entry[0]]= np.array(ast.literal_eval(entry[1].strip()))
     return d

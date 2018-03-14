@@ -39,8 +39,8 @@ def get_spec(filename):
         si = tb['Spectral_Index']
         beta = tb['beta']
     if fgl:
-        fd = tb['Flux_Density']*1000. #GeV
-        pe = tb['Pivot_Energy']/1000. #GeV
+        fd = tb['Flux_Density']*1000 #GeV
+        pe = tb['Pivot_Energy']/1000. 
         pi = tb['PowerLaw_Index']
         si = tb['Spectral_Index']
         beta = tb['beta']
