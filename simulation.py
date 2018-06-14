@@ -266,12 +266,13 @@ def source_sim(N,a,Lmin,Lmax,specs,E,dE,thres=1e-9,spatialmodel='LorimerC',catal
     
 #    #specs
     if catalog=='fgl':
-        mask_E3FGL = (E>=1)&(E<100)
+        maskE = (E>=1)&(E<100)
     elif catalog=='fhl':
-        mask_E3FGL = (E>=10)
+        maskE = (E>=10)
+    
     randspec = specs[np.random.randint(0,specs.shape[0],N)]
-    specs =  add_rand_spec(randspec,flux,dE,mask_E3FGL)
+    
+    specs =  add_rand_spec(randspec,flux,dE,maskE)
     lb_arr = np.array((l,b))
     #specs =  get_spec(1,100,ind,flux,E)
-        
     return specs,flux,lb_arr
