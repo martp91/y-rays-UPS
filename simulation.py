@@ -275,4 +275,4 @@ def source_sim(N,a,Lmin,Lmax,specs,E,dE,thres=1e-9,spatialmodel='LorimerC',catal
     specs =  add_rand_spec(randspec,flux,dE,maskE)
     lb_arr = np.array((l,b))
     #specs =  get_spec(1,100,ind,flux,E)
-    return specs,flux,lb_arr
+    return specs,flux,lb_arr,R_smpl
