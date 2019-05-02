@@ -46,6 +46,48 @@ Lmin_tev = 3.96e34
 Lmax_tev = 1.79e38
 #Function definitions
 ##Drawing random numbers
+
+def cartesian(r,theta):
+    return r*np.cos(theta),r*np.sin(theta)
+
+def polar(x,y):
+    r = np.sqrt(x*x+y*y)
+    theta = np.arctan2(y,x)
+    return r,theta
+
+def spiralize(radius):
+    """
+    From radius create spiral galaxy as Faucher
+
+    Reference: http://adsabs.harvard.edu/abs/2006ApJ...643..332F
+
+    inspiration from gammapy
+
+    Norma = 0
+    Carina Sagittarius = 1
+    Perseus = 2
+    Crux Scutum = 3
+    """
+    n = radius.shape[0]
+    N = np.random.randint(0,4,radius.shape)
+    k = np.array([4.25,4.25,4.89,4.89])
+    r_0 = np.array([3.48,3.48,4.9,4.9])
+    theta_0 = np.array([1.57,4.71,4.09,0.95])
+    theta = k[N]*np.log(radius/r_0[N])+theta_0[N]
+    spiralarm = N
+    ##Blur allong spiral arm
+    dr = np.random.normal(0,0.07*radius,n)
+    dtheta = np.random.uniform(0,2*np.pi,n)
+    x,y = cartesian(radius,theta)
+    dx,dy = cartesian(dr,0)
+    r,theta = polar(x+dx,y+dy)
+    #r= radius+dr
+    #theta = theta+dtheta
+    #Blur center
+    theta_corr = np.random.uniform(0,2*np.pi,n)
+    theta = theta+theta_corr*np.exp(-0.35*r)
+    return r,theta,spiralarm   
+
 def rand_R(n,a,b,Rsun=Rsun):
     "Return random value of R, pdf is above, this is a gamma distribution"
     return np.random.gamma(a+1,1./b,n)*Rsun
@@ -132,7 +174,7 @@ def norm_spec(spec,flux,dE,mask):
     norm = np.sum(wrong_spec[mask]*dE[mask])
     return wrong_spec*flux/norm
 
-def read_catalog(fn,E,classes=['pwn','snr','spp']):
+def read_catalog(fn,E,classes=['pwn','snr','spp'],fgl4=False):
     """
     Reads the catalog, either 3FGL or 3FHL, and returns the average 
     spectrum of the desired sources.
@@ -142,14 +184,23 @@ def read_catalog(fn,E,classes=['pwn','snr','spp']):
     if 'psch' in fn:
         fhl = True
         fgl = False
+        fgl4 = False
+    elif '8year' in fn or 'v18' in fn:
+        fgl = True
+        fhl = False
+        fgl4 = True
     else:
+        fgl4 = False
         fgl = True
         fhl = False
     data = fits.getdata(fn)
     tb = Table(data)
-    if fgl:
-        cls = np.asarray(tb['CLASS1'].tolist())
-    elif fhl:
+    if fgl and not fgl4:
+        try:
+            cls = np.asarray(tb['CLASS1'].tolist())
+        except KeyError:
+            cls = np.asarray(tb['CLASS'].tolist())
+    elif fhl or fgl4:
         cls = np.asarray(tb['CLASS'].tolist())
     cls = np.char.lower(np.char.rstrip(cls,' '))
     mask = np.zeros_like(cls,dtype=bool)
@@ -209,7 +260,7 @@ def add_rand_spec(spec,flux,dE,mask):
     good_spec = wrong_spec*(flux[:,np.newaxis]/norm[:,np.newaxis])
     return good_spec
                 
-def source_sim(N,a,Lmin,Lmax,specs,E,dE,thres=1e-9,spatialmodel='LorimerC',catalog='fgl'):
+def source_sim(N,a,Lmin,Lmax,specs,E,dE,thres=1e-9,spatialmodel='LorimerC',catalog='fgl',SpiralModel=False):
     #np.random.seed(0)
     """Sample from above distribution N times: r,z,L and calculate flux as measured at earth.
     New: add random spectrum to source 
@@ -250,6 +301,9 @@ def source_sim(N,a,Lmin,Lmax,specs,E,dE,thres=1e-9,spatialmodel='LorimerC',catal
         print "spatialmodel not defined or wrong"
         raise RuntimeError
         return -1
+    
+    if SpiralModel:
+        R_smpl,phi_smpl = spiralize(R_smpl)[:-1]
 
     #distances from source to earth, calc flux
     x,y,z = R_smpl*np.cos(phi_smpl),R_smpl*np.sin(phi_smpl),z_smpl
