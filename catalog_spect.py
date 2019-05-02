@@ -1,6 +1,4 @@
 import numpy as np
-import pylab as plt
-import optparse
 from astropy.io import fits
 from astropy.table import Table
 
@@ -29,7 +27,7 @@ def get_spec(filename,E):
     if fgl4:
         func_subExp = lambda E,p: p[0]*(E/p[1])**-p[2]*np.exp(p[3]*(p[1]**p[4]-E**p[4]))
 
-    list_func=[func_pwl,func_log,func_Exp]
+    #list_func=[func_pwl,func_log,func_Exp]
     if fhl:
         fd = tb['Flux_Density']
         pe = tb['Pivot_Energy']
@@ -55,7 +53,7 @@ def get_spec(filename,E):
         plec_ei = tb['PLEC_Exp_Index'] #expindex b
 
 
-    for i,entry in enumerate(tb):
+    for i in len(tb):
         if ST[i]=='PowerLaw':
             spect[i,:]=func_pwl(E,[fd[i],pe[i],pi[i]])
         elif ST[i]=='LogParabola' and not fgl4:
@@ -69,12 +67,10 @@ def get_spec(filename,E):
         elif ST[i]=='PLSuperExpCutoff2' and fgl4:
             spect[i,:] = func_subExp(E,[fd[i],pe[i],plec_i[i],plec_ef[i],plec_ei[i]])
         else:
-            print "missed:", ST[i] 
-        #plt.loglog(E,spect[i,:])
-    #plt.show()
+            print "missed:", ST[i]
     return spect
 
-#TODO make E variable???    
+#TODO make E variable???
 def average_spec(spec):
     from scipy.optimize import curve_fit
     "Return ave spec and best fit pwl index"
@@ -84,7 +80,7 @@ def average_spec(spec):
     ave_spec = np.average(spec,axis=0)
     fit,cov = curve_fit(fit_func,_E,np.log10(ave_spec),p0=[-12,2.2])
 
-    return ave_spec,fit[1] 
+    return ave_spec,fit[1]
 
 
 

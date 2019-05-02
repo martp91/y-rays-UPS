@@ -77,7 +77,7 @@ def spiralize(radius):
     spiralarm = N
     ##Blur allong spiral arm
     dr = np.random.normal(0,0.07*radius,n)
-    dtheta = np.random.uniform(0,2*np.pi,n)
+    #dtheta = np.random.uniform(0,2*np.pi,n)
     x,y = cartesian(radius,theta)
     dx,dy = cartesian(dr,0)
     r,theta = polar(x+dx,y+dy)
@@ -86,7 +86,7 @@ def spiralize(radius):
     #Blur center
     theta_corr = np.random.uniform(0,2*np.pi,n)
     theta = theta+theta_corr*np.exp(-0.35*r)
-    return r,theta,spiralarm   
+    return r,theta,spiralarm
 
 def rand_R(n,a,b,Rsun=Rsun):
     "Return random value of R, pdf is above, this is a gamma distribution"
